@@ -16,6 +16,8 @@ Captured pieces displayed on the side of the board.
 
 Check detection and indication for kings in danger.
 
+Checkmate detection, stalemate and all draw rules.
+
 Game over detection and restart option.
 
 # Installation
@@ -55,7 +57,7 @@ Keyboard (When Game Over): Press ENTER to restart the game.
 
 # Game Rules
 
-Follows standard chess rules for piece movement and capturing, but you must capture the oppenents king in order to win #NeverSurrender
+Follows standard chess rules
 
 The game includes check detection and alerts players if their king is in danger.
 
