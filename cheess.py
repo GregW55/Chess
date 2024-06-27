@@ -186,7 +186,8 @@ class Chess:
         self.turn_step = 0  # 0- whites turn no selection, 1: piece selected, 2 and 3 same for blacks turn
         self.white_selection = 100  # Default number to determine if white has selected a piece
         self.black_selection = 100  # Default number to determine if black has selected a piece
-        self.valid_moves = []  # Track the valid moves for the current players turn
+        self.white_moves = []  # Track the valid moves
+        self.black_moves = []  # Track the valid moves
 
         self.white_pieces = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook',
                              'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn']
@@ -432,19 +433,22 @@ class Chess:
 
         return moves_list
 
-    def check_valid_moves(self):
+    def check_valid_moves(self, color):
         # This function only appends moves from each list that keep the player out of check using move_puts_in_check()
         # If a move would put a player in check that move is deemed invalid and not appended to the list
         valid_moves = []
-        if self.turn_step < 2:  # Whites turn
+        valid_moves_selection = None
+        if color == 'white':  # Whites turn
             options_list = self.white_options
-            valid_moves_selection = options_list[self.white_selection]
+            if self.white_selection != 100:
+                valid_moves_selection = options_list[self.white_selection]
         else:  # Blacks turn
             options_list = self.black_options
-            valid_moves_selection = options_list[self.black_selection]
+            if self.black_selection != 100:
+                valid_moves_selection = options_list[self.black_selection]
         for i in range(len(options_list)):
             for move in options_list[i]:
-                if not self.move_puts_in_check('white' if self.turn_step < 2 else 'black', i, move):
+                if not self.move_puts_in_check('white' if color == 'white' else 'black', i, move):
                     valid_moves.append(move)
 
         return valid_moves, valid_moves_selection
@@ -491,86 +495,19 @@ class Chess:
             return in_check
 
     def is_checkmate(self, color):
-
-        checkmate_flag = True  # Assume checkmate until proven otherwise
-        white_options_list = self.white_options.copy()
-        white_temp_locations = self.white_locations.copy()
-        white_temp_pieces = self.white_pieces.copy()
-        white_temp_check = self.white_check
-        black_options_list = self.black_options.copy()
-        black_temp_locations = self.black_locations.copy()
-        black_temp_pieces = self.black_pieces.copy()
-        black_temp_check = self.black_check
         if color == 'white':
-            try:
-                for i in range(len(white_options_list)):
-                    valid_moves = white_options_list[i]
-                    for move in valid_moves:
-                        if i < len(self.white_locations):
-                            self.white_check = False
-                            self.white_locations[i] = move
-                            self.check('white')
-                            if not self.white_check:
-                                checkmate_flag = False
-                                break
-                            self.white_check = False
-                            if move in self.black_locations:
-                                black_piece_index = self.black_locations.index(move)
-                                captured_black_piece = self.black_pieces[black_piece_index]
-                                self.black_pieces.pop(black_piece_index)
-                                self.black_locations.remove(move)
-                                self.check('white')
-                                if not self.white_check:
-                                    checkmate_flag = False
-                                    break
-                                self.black_pieces.insert(black_piece_index, captured_black_piece)
-                                self.black_locations.insert(black_piece_index, move)
-                    if not checkmate_flag:
-                        break
-            finally:
-                self.white_locations = white_temp_locations
-                self.white_pieces = white_temp_pieces
-                self.white_check = white_temp_check
-                self.black_locations = black_temp_locations
-                self.black_pieces = black_temp_pieces
-                self.black_check = black_temp_check
-
-        elif color == 'black':
-            try:
-                for i in range(len(black_options_list)):
-                    valid_moves = black_options_list[i]
-                    for move in valid_moves:
-                        if i < len(self.black_locations):
-                            self.black_check = False
-                            self.black_locations[i] = move
-                            self.check('black')
-                            if not self.black_check:
-                                checkmate_flag = False
-                                break
-                            self.black_check = False
-                            if move in self.white_locations:
-                                white_piece_index = self.white_locations.index(move)
-                                captured_white_piece = self.white_pieces[white_piece_index]
-                                self.white_pieces.pop(white_piece_index)
-                                self.white_locations.remove(move)
-                                self.check('black')
-                                if not self.black_check:
-                                    checkmate_flag = False
-                                    break
-                                self.white_pieces.insert(white_piece_index, captured_white_piece)
-                                self.white_locations.insert(white_piece_index, move)
-                    if not checkmate_flag:
-                        break
-            finally:
-                self.white_locations = white_temp_locations
-                self.white_pieces = white_temp_pieces
-                self.white_check = white_temp_check
-                self.black_locations = black_temp_locations
-                self.black_pieces = black_temp_pieces
-                self.black_check = black_temp_check
-
-        return checkmate_flag
-
+            self.white_moves, valid_moves_selection = self.check_valid_moves('white')
+            if self.white_moves:
+                return False
+            else:
+                return True
+        else:
+            self.black_moves, valid_moves_selection = self.check_valid_moves('black')
+            if self.black_moves:
+                return False
+            else:
+                return True
+    
     def add_to_history(self, starting_position, ending_position, piece, color):
         boardstate = self.white_locations + self.black_locations
         move = {
@@ -622,6 +559,9 @@ class Chess:
             #  Check if the player has moved a pawn or captured a piece for the fifty-move rule
             if self.white_pieces[self.white_selection] == 'pawn':
                 self.white_move_counter = 0
+                # Pawn promotion, for now only allows queen promotion
+                if click_alg[1] == '8':
+                    self.white_pieces[self.white_selection] = 'queen'
             if click_alg in self.black_locations:
                 self.white_move_counter = 0
 
@@ -651,7 +591,7 @@ class Chess:
             self.white_selection = 100
             self.black_selection = 100
 
-            if not self.white_options and not self.white_check:
+            if not self.white_moves and not self.white_check:
                 self.winner = 'stalemate'
                 self.done = True
 
@@ -689,6 +629,9 @@ class Chess:
             #  Check if the player has moved a pawn or captured a piece for the fifty-move rule
             if self.black_pieces[self.black_selection] == 'pawn':
                 self.black_move_counter = 0
+                # Pawn promotion, for now only allows queen promotion
+                if click_alg[1] == '1':
+                    self.black_pieces[self.black_selection] = 'queen'
             if click_alg in self.white_locations:
                 self.black_move_counter = 0
 
@@ -746,15 +689,15 @@ class Chess:
             if self.white_move_counter == 50 or self.black_move_counter == 50:
                 self.winner = "draw 50"
                 self.done = True
-            if self.white_selection != 100:
+            if self.turn_step < 2:
                 self.white_options = self.check_options('white')
-                self.valid_moves, valid_moves_selection = self.check_valid_moves()
-                if self.valid_moves is not None:
+                self.white_moves, valid_moves_selection = self.check_valid_moves('white')
+                if valid_moves_selection is not None:
                     self.board.draw_valid(valid_moves_selection)
-            elif self.black_selection != 100:
+            elif self.turn_step > 1:
                 self.black_options = self.check_options('black')
-                self.valid_moves, valid_moves_selection = self.check_valid_moves()
-                if self.valid_moves is not None:
+                self.black_moves, valid_moves_selection = self.check_valid_moves('black')
+                if valid_moves_selection is not None:
                     self.board.draw_valid(valid_moves_selection)
 
             # Event handling
@@ -780,7 +723,7 @@ class Chess:
                             if click_alg in self.white_locations:
                                 self.white_selection = self.white_locations.index(click_alg)
                                 starting_position = click_alg
-                                self.valid_moves, valid_moves_selection = self.check_valid_moves()
+                                self.white_moves, valid_moves_selection = self.check_valid_moves('white')
                                 # Set turn step to moving instead of selection
                                 if self.turn_step == 0:
                                     self.turn_step = 1
@@ -799,7 +742,7 @@ class Chess:
                             if click_alg in self.black_locations:
                                 self.black_selection = self.black_locations.index(click_alg)
                                 starting_position = click_alg
-                                self.valid_moves, valid_moves_selection = self.check_valid_moves()
+                                self.black_moves, valid_moves_selection = self.check_valid_moves('black')
                                 # set the turn to moving instead of selection
                                 if self.turn_step == 2:
                                     self.turn_step = 3
@@ -812,7 +755,8 @@ class Chess:
                         self.turn_step = 0  # 0- whites turn no selection, 1: piece selected, 2 and 3 same for black
                         self.white_selection = 100
                         self.black_selection = 100
-                        self.valid_moves = []
+                        self.white_moves = []
+                        self.black_moves = []
                         self.white_pieces = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook',
                                              'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn']
                         self.black_pieces = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook',
