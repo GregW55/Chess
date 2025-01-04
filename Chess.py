@@ -6,43 +6,36 @@ pygame.init()
 class Board:
     """Class to handle GUI/Drawing stuff on screen"""
     def __init__(self, chess_instance):
-        self.chess = chess_instance  # Pass the chess class to be able to access variables
-        self.board_white = (235, 236, 208)  # Whatever color you want, this is just the white I chose
-        self.board_green = (118, 146, 85)  # Same thing for green
-        self.grid_color = "black"  # Grid pattern on the screen, can make it whatever color you'd like
-
+        self.chess = chess_instance  
+        self.board_white = (235, 236, 208)  
+        self.board_green = (118, 146, 85)  
+        self.grid_color = "black"  
 
     @staticmethod
     def coords_to_alg(coords):
-        """Function to turn coordinates into algebraic notation"""
-        # ord('a') returns the ASCII value of the letter, in this case 97, this is to have starting point of the board (a) and add the coordinate to that, so +1 is b, etc.
-        # This allows us to manipulate the value, to determine which square we are on(basically comparing the number value of each letter to determine where you've click)
-        # chr() turns the ASCII value back to its corresponding letter
-        file_letter = chr(ord('a') + coords[0])  # Gets the value of the square, then converts it to its letter form
-        rank_number = 8 - coords[1]  # base of 8(max board square)
-        return f"{file_letter}{rank_number}"  # Returns a string like "a9"
+        """Function to turn coordinates into algebraic notation""".
+        file_letter = chr(ord('a') + coords[0])  
+        rank_number = 8 - coords[1] 
+        return f"{file_letter}{rank_number}"  
 
     @staticmethod
     def alg_to_coords(algebraic):
         """Function to turn algebraic notation into coordinates"""
-        file_letter = algebraic[0]  # would be "a", or "b" etc
-        y = int(str(algebraic)[1:]) - 1  # This takes the second part of the string (for example "b9" this would just take "9", and convert it to an integer instead of a string
-        x = ord(file_letter) - ord('a')  # Gets the ASCII value of the letter, then subtracts the baseline of "a" (a - a = 0, or 97-97 = 0, this just allows us to manipulate the data,
-        # another example would be e - a = 4, or 101 - 97 = 4, how many x places we need to move over
-        y = 7 - y  # the y axis can be any of 8 numbers (0-7, so 7-7 would be 0, or the first place on the board)
+        file_letter = algebraic[0] 
+        y = int(str(algebraic)[1:]) - 1  
+        x = ord(file_letter) - ord('a')  
+        y = 7 - y  
         return x, y
 
     def draw_board(self):
-        screen.fill(self.board_white)  # Fill screen
-        # Loop through each row and column of the 8x8 grid
+        screen.fill(self.board_white) 
         for row in range(8):
             for col in range(8):
-                square_name = self.coords_to_alg((col, row))  # Reverse y coords to fix algebraic notation
-                # Calculate coordinates for each square
+                square_name = self.coords_to_alg((col, row))  
                 x = col * 100
                 y = row * 100
 
-                # Determine color based on row and column indices
+
                 if (row + col) % 2 == 0:
                     pygame.draw.rect(screen, self.board_white, [x, y, 100, 100])
                 else:
@@ -50,46 +43,45 @@ class Board:
                 square_text = font.render(square_name, True, 'black')
                 screen.blit(square_text, (x + 5, y + 5))
 
-        # Draw grid lines on the board
+
         for i in range(9):
             pygame.draw.line(screen, self.grid_color, (0, 100 * i), (800, 100 * i), 2)
             pygame.draw.line(screen, self.grid_color, (100 * i, 0), (100 * i, 800), 2)
 
 
     def draw_pieces(self):
-        for i in range(len(self.chess.white_pieces)):  # For each piece(or i(ndex)) in self.white_pieces loop through this
-            index = piece_list.index(self.chess.white_pieces[i])  # the index is where in the list the value is, for example the rook's index is 0, or 7 (depending which rook) since its first and eighth in the list
-            x, y = self.alg_to_coords(self.chess.white_locations[i])  # get the x,y cordinate of the pieces location using the index value. white_locations[i] searches white_locations, looking for the index, so for rook it would look for the first or eighth thing in that list
+        for i in range(len(self.chess.white_pieces)):  
+            index = piece_list.index(self.chess.white_pieces[i])  
+            x, y = self.alg_to_coords(self.chess.white_locations[i])  
 
-            if self.chess.white_pieces[i] == 'pawn':  # Draw the pawns with an offset otherwise they look weird, optional
+            if self.chess.white_pieces[i] == 'pawn':  
                 screen.blit(white_pawn, (x * 100 + 22, y * 100 + 30))
             else:
                 screen.blit(white_images[index], (x * 100 + 10, y * 100 + 10))
-            if self.chess.turn_step < 2:  # If its whites turn
-                if self.chess.white_selection == i:  # If white has selected a piece
-                    pygame.draw.rect(screen, 'red', [x * 100 + 1, y * 100 + 1, 100, 100], 2)  # Draw the border around the selected piece
+            if self.chess.turn_step < 2: 
+                if self.chess.white_selection == i:  
+                    pygame.draw.rect(screen, 'red', [x * 100 + 1, y * 100 + 1, 100, 100], 2)  
 
-        for i in range(len(self.chess.black_pieces)):  # For each piece(or i(ndex)) in self.white_pieces loop through this
-            index = piece_list.index(self.chess.black_pieces[i])  # the index is where in the list the value is, for example the rook's index is 0, or 7 (depending which rook) since its first and eighth in the list
+        for i in range(len(self.chess.black_pieces)):  
+            index = piece_list.index(self.chess.black_pieces[i]) 
             x, y = self.alg_to_coords(self.chess.black_locations[i])
 
-            if self.chess.black_pieces[i] == 'pawn':  # Draws the pawns with an offset, optional
+            if self.chess.black_pieces[i] == 'pawn':  
                 screen.blit(black_pawn, (x * 100 + 22, y * 100 + 30))
             else:
                 screen.blit(black_images[index], (x * 100 + 10, y * 100 + 10))
-            if self.chess.turn_step >= 2:  # blacks turn
+            if self.chess.turn_step >= 2: 
                 if self.chess.black_selection == i:
-                    pygame.draw.rect(screen, 'blue', [x * 100 + 1, y * 100 + 1, 100, 100], 2)  # Draws the border around selected piece
-
+                    pygame.draw.rect(screen, 'blue', [x * 100 + 1, y * 100 + 1, 100, 100], 2) 
     def draw_check(self):
-        if self.chess.white_check:  # Only use the function if a player is in check
-            king_location = self.chess.white_locations[self.chess.white_pieces.index('king')]  # Same logic as before, this time you are going to get the index of the king, so your getting where in that list the king is, 4 for example then checking the 4th thing in the locations list, which would be the kings location
+        if self.chess.white_check: 
+            king_location = self.chess.white_locations[self.chess.white_pieces.index('king')]  
             x, y = self.alg_to_coords(king_location)
-            if self.chess.counter < 15:  # Draw the check every 15 frames, can change this to whatever you want under 30 (or change the main loop counter inside the main function aswell)
+            if self.chess.counter < 15:  
                 pygame.draw.rect(screen, 'dark red', [x * 100 + 1,
-                                                      y * 100 + 1, 100, 100], 10)  # draw the red border around the king to indicate your in check
-        elif self.chess.black_check:  # Only use the function if a player is in check
-            king_location = self.chess.black_locations[self.chess.black_pieces.index('king')]  # Same logic as before, this time you are going to get the index of the king, so your getting where in that list the king is, 4 for example then checking the 4th thing in the locations list, which would be the kings location
+                                                      y * 100 + 1, 100, 100], 10)  
+        elif self.chess.black_check: 
+            king_location = self.chess.black_locations[self.chess.black_pieces.index('king')]  
             x, y = self.alg_to_coords(king_location)
             if self.chess.counter < 15:
                 pygame.draw.rect(screen, 'dark blue', [x * 100, y * 100, 100, 100], 10)
@@ -97,8 +89,8 @@ class Board:
 
     def draw_valid(self, moves):
         color = 'blue' if self.chess.turn_step < 2 else 'red'
-        if len(moves) > 0:  # make sure you have some valid moves
-            for i in range(len(moves)):  # Draw circles to indicate valid move options
+        if len(moves) > 0:  
+            for i in range(len(moves)):  
                 moves_x, moves_y = self.alg_to_coords(moves[i])
                 pygame.draw.circle(screen, color, (moves_x * 100 + 50, moves_y * 100 + 50), 5)
 
@@ -128,18 +120,18 @@ class Board:
 class Chess:
     def __init__(self):
         self.winner = ''
-        self.counter = 0  # Used for check drawing every so often
+        self.counter = 0 
         self.done = False
         self.run = True
-        self.white_check = False  # Track if the white player is in check
-        self.black_check = False  # Track if the black player is in check
+        self.white_check = False  
+        self.black_check = False  
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.board = Board(self)  # Used to draw the board and pieces
+        self.board = Board(self) 
         self.timer = pygame.time.Clock()
         self.fps = 60
-        self.turn_step = 0  # 0- whites turn no selection, 1: piece selected, 2 and 3 same for blacks turn
-        self.white_selection = 100  # Default number to determine if white has selected a piece
-        self.black_selection = 100  # Default number to determine if black has selected a piece
+        self.turn_step = 0 
+        self.white_selection = 100 
+        self.black_selection = 100
 
         self.white_pieces = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook',
                              'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn']
@@ -155,7 +147,7 @@ class Chess:
         self.white_moves = []  # Only valid moves
         self.black_moves = []
 
-    # Check all valid moves per piece
+
     def check_king(self, position, color):
         moves_list = []
         friends_list = self.white_locations if color == 'white' else self.black_locations
@@ -604,8 +596,8 @@ class Chess:
                             # Set turn step to moving instead of selection
                             if self.turn_step == 0:
                                 self.turn_step = 1
-                        elif valid_moves_selection:  # If you've selected a piece and have valid moves
-                            if self.turn_step == 1 and click_alg in valid_moves_selection:  # move the piece to where the user clicked using the white_move function
+                        elif valid_moves_selection:  
+                            if self.turn_step == 1 and click_alg in valid_moves_selection: 
                                 self.white_move(click_alg)
 
                     # Blacks turn
@@ -621,10 +613,10 @@ class Chess:
                             if self.turn_step == 2:
                                 self.turn_step = 3
                         if valid_moves_selection:
-                            if self.turn_step == 3 and click_alg in valid_moves_selection:  # If you've selected a piece in the previous step with valid moves
-                                self.black_move(click_alg)  # move the piece to click_alg using black)move function
+                            if self.turn_step == 3 and click_alg in valid_moves_selection:  
+                                self.black_move(click_alg) 
 
-            if self.winner != '':  # if the winner is anything
+            if self.winner != '':  
                 if self.winner == 'stalemate':
                     self.done = True
                     self.board.draw_stalemate()
