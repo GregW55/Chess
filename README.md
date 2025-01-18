@@ -36,5 +36,5 @@ This is a two-player chess game built using Python and Pygame. It allows two pla
 - The game includes check detection and alerts players if their king is in danger
 - Capture enemy pieces by moving onto their square.
 
-#Contributing
+# Contributing
 Contributions are welcome! If you have any suggestions, improvements, or feature requests, feel free to open issues or pull requests.
